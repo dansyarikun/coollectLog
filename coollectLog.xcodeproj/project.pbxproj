@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		FB08F2D02F2DAD8E00549383 /* requirements.md in Resources */ = {isa = PBXBuildFile; fileRef = FB08F2CF2F2DAD8E00549383 /* requirements.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		FB08F2B32F2DABA900549383 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		FB08F2A52F2DABA700549383 /* coollectLog.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = coollectLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB08F2B22F2DABA900549383 /* coollectLogTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = coollectLogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB08F2BC2F2DABA900549383 /* coollectLogUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = coollectLogUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB08F2CF2F2DAD8E00549383 /* requirements.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = requirements.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +80,7 @@
 		FB08F29C2F2DABA700549383 = {
 			isa = PBXGroup;
 			children = (
+				FB08F2CF2F2DAD8E00549383 /* requirements.md */,
 				FB08F2A72F2DABA700549383 /* coollectLog */,
 				FB08F2B52F2DABA900549383 /* coollectLogTests */,
 				FB08F2BF2F2DABA900549383 /* coollectLogUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FB08F2D02F2DAD8E00549383 /* requirements.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
