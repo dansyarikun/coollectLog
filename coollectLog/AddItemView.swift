@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import SwiftData
 
 struct AddItemView: View {
     @Environment(\.modelContext) private var modelContext
