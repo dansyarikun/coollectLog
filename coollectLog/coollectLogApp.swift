@@ -1,11 +1,5 @@
-//
-//  coollectLogApp.swift
-//  coollectLog
-//
-//  Created by 吉田健人 on 2026/01/31.
-//
-
 import SwiftUI
+import SwiftData
 
 @main
 struct coollectLogApp: App {
@@ -13,5 +7,6 @@ struct coollectLogApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: Item.self)
     }
 }

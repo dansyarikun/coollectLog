@@ -1,12 +1,17 @@
-//
-//  Item.swift
-//  coollectLog
-//
-//  Created by 吉田健人 on 2026/02/01.
-//
+import Foundation
+import SwiftData
 
-struct Item {
-  var title: String
-  var category: String
-  var image: String
+@Model
+final class Item {
+    var title: String
+    var category: String
+    var imagePath: String?
+    var createdAt: Date
+
+    init(title: String, category: String, imagePath: String? = nil) {
+        self.title = title
+        self.category = category
+        self.imagePath = imagePath
+        self.createdAt = Date()
+    }
 }

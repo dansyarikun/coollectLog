@@ -1,115 +1,132 @@
-//
-//  AddItemView.swift
-//  coollectLog
-//
-//  Created by 吉田健人 on 2026/01/31.
-//
-
 import SwiftUI
+import PhotosUI
 
 struct AddItemView: View {
-    @Binding var itemsArray: [Item]
-    @Binding var isShowAddSheet: Bool
-    
-    @State var isShowAddAlert: Bool = false
-    
-    @State var newItem: Item = Item(title:"",category:"",image:"")
-    let CATEGORYLIST : [String] = ["コーヒー", "ビール"]
-    let ERR_MSG_REQUIRE_TITLE: String = "タイトルを入力してください。"
-    enum Categories: String, CaseIterable {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var title: String = ""
+    @State private var selectedCategory: Category = .coffee
+    @State private var selectedImage: UIImage? = nil
+
+    @State private var photosPickerItem: PhotosPickerItem? = nil
+    @State private var isShowCamera: Bool = false
+    @State private var isShowAlert: Bool = false
+
+    enum Category: String, CaseIterable {
         case coffee
         case beer
-        
-        var name: String {
+
+        var displayName: String {
             switch self {
-                case .coffee: return "コーヒー"
-                case .beer: return "ビール"
+            case .coffee: return "コーヒー"
+            case .beer: return "ビール"
             }
         }
     }
-    
-    let defaultcategory: String = "コーヒー"
-    @State var selectedCategory = Categories.coffee
-    @State var isShowCamera: Bool = false
-    @State var captureImage: UIImage? = nil
-    
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
         NavigationStack {
-            VStack{
-                Form {
-                    TextField("タイトル", text: $newItem.title)
-                    Picker("カテゴリー", selection: $selectedCategory) {
-                        ForEach(Categories.allCases, id: \.self) { category in
-                            Text(category.name)
+            Form {
+                Section("タイトル") {
+                    TextField("タイトルを入力", text: $title)
+                }
+
+                Section("カテゴリ") {
+                    Picker("カテゴリ", selection: $selectedCategory) {
+                        ForEach(Category.allCases, id: \.self) { category in
+                            Text(category.displayName).tag(category)
                         }
                     }
                     .pickerStyle(.segmented)
                 }
 
-                // カメラボタン
-                Button {
-                  // カメラ利用チェック
-                  if UIImagePickerController.isSourceTypeAvailable(.camera) {
-                      print("カメラ利用可能")
-                      isShowCamera.toggle()
-                    } else {
-                      print("カメラ利用不可")
-                  }
-                } label: {
-                  Text("カメラ起動")
-                      .frame(maxWidth: .infinity)
-                      .frame(height: 50)
-                      .multilineTextAlignment(.center)
-                      .background(Color.blue)
-                      .cornerRadius(10)
-                      .foregroundStyle(Color.white)
-                }
-                .padding()
-                .sheet(isPresented: $isShowCamera) { // isPresentedで指定した状態変数がtrueの時実行
-                    // UIImagePickerContorollerを表示
-                    ImagePickerView(isShowCamera: $isShowCamera, captureImage: $captureImage)
+                Section("画像") {
+                    if let image = selectedImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+
+                    PhotosPicker(
+                        selection: $photosPickerItem,
+                        matching: .images
+                    ) {
+                        Label("フォトライブラリから選択", systemImage: "photo.on.rectangle")
+                    }
+
+                    Button {
+                        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                            isShowCamera = true
+                        }
+                    } label: {
+                        Label("カメラで撮影", systemImage: "camera")
+                    }
+
+                    if selectedImage != nil {
+                        Button(role: .destructive) {
+                            selectedImage = nil
+                            photosPickerItem = nil
+                        } label: {
+                            Label("画像を削除", systemImage: "trash")
+                        }
+                    }
                 }
             }
-            HStack {
-                Button("back") {
-                    isShowAddSheet.toggle()
-                }
-                .padding()
-                .background(Color.blue)
-                .foregroundStyle(.white)
-                .cornerRadius(10)
-                .padding()
-                .font(Font.largeTitle.bold())
-                
-                Button("enter") {
-                    newItem.category = selectedCategory.name
-                    if(newItem.title == "") {
-                        isShowAddAlert = true
-                    } else {
-                      itemsArray.append(newItem)
-                      isShowAddSheet.toggle()
+            .navigationTitle("アイテム追加")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("キャンセル") {
+                        dismiss()
                     }
                 }
-                .padding()
-                .background(Color.blue)
-                .foregroundStyle(.white)
-                .cornerRadius(10)
-                .padding()
-                .font(Font.largeTitle.bold())
-                .alert("Validation Error", isPresented: $isShowAddAlert) {
-                    Button("back", role: .cancel) {
-                        
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存") {
+                        saveItem()
                     }
-                } message: {
-                    Text(ERR_MSG_REQUIRE_TITLE)
-                        .font(.largeTitle)
+                }
+            }
+            .alert("入力エラー", isPresented: $isShowAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("タイトルを入力してください。")
+            }
+            .sheet(isPresented: $isShowCamera) {
+                ImagePickerView(captureImage: $selectedImage)
+            }
+            .onChange(of: photosPickerItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        selectedImage = uiImage
+                    }
                 }
             }
         }
     }
-}
 
-//#Preview {
-//    AddItemView()
-//}
+    private func saveItem() {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else {
+            isShowAlert = true
+            return
+        }
+
+        var imagePath: String? = nil
+        if let image = selectedImage {
+            imagePath = ImageStore.save(image)
+        }
+
+        let newItem = Item(
+            title: trimmedTitle,
+            category: selectedCategory.displayName,
+            imagePath: imagePath
+        )
+        modelContext.insert(newItem)
+
+        dismiss()
+    }
+}
